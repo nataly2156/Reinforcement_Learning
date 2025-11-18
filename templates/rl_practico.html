@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}Caso Práctico - RL{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">🎮 Caso Práctico: Entrenamiento de Agente Q-Learning</h1>
+
+<div class="row">
+    <!-- Panel de Control -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">⚙️ Panel de Control</h5>
+            </div>
+            <div class="card-body">
+                <h6>Parámetros del Entorno</h6>
+                <div class="mb-3">
+                    <label class="form-label">Tamaño del Grid:</label>
+                    <input type="number" id="grid_size" class="form-control" value="5" min="3" max="10">
+                </div>
+                
+                <h6 class="mt-4">Hiperparámetros del Agente</h6>
+                <div class="mb-3">
+                    <label class="form-label">Tasa de Aprendizaje (α):</label>
+                    <input type="number" id="learning_rate" class="form-control" value="0.1" step="0.01" min="0.01" max="1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Factor de Descuento (γ):</label>
+                    <input type="number" id="discount_factor" class="form-control" value="0.95" step="0.01" min="0.01" max="1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Epsilon Inicial (ε):</label>
+                    <input type="number" id="epsilon" class="form-control" value="1.0" step="0.1" min="0.1" max="1">
+                </div>
+                
+                <h6 class="mt-4">Entrenamiento</h6>
+                <div class="mb-3">
+                    <label class="form-label">Número de Episodios:</label>
+                    <input type="number" id="n_episodes" class="form-control" value="1000" step="100" min="100">
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button id="btn-initialize" class="btn btn-primary">🔄 Inicializar Entorno</button>
+                    <button id="btn-train" class="btn btn-success" disabled>🚀 Entrenar Agente</button>
+                    <button id="btn-test" class="btn btn-info" disabled>🧪 Probar Agente</button>
+                    <button id="btn-simulate" class="btn btn-warning" disabled>▶️ Simular Episodio</button>
+                    <button id="btn-reset" class="btn btn-danger">🔃 Reiniciar Todo</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estado del Sistema -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📊 Estado del Sistema</h5>
+            </div>
+            <div class="card-body">
+                <div id="system-status">
+                    <p class="mb-2"><strong>Estado:</strong> <span id="status-text">No inicializado</span></p>
+                    <p class="mb-2"><strong>Estados:</strong> <span id="n-states">-</span></p>
+                    <p class="mb-2"><strong>Acciones:</strong> <span id="n-actions">-</span></p>
+                    <p class="mb-2"><strong>Epsilon actual:</strong> <span id="current-epsilon">-</span></p>
+                    <p class="mb-0"><strong>Recompensa promedio:</strong> <span id="avg-reward">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Panel de Visualización -->
+    <div class="col-md-8">
+        <!-- Mensajes -->
+        <div id="alert-container"></div>
+        
+        <!-- Entorno Visual -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">🗺️ Visualización del Entorno</h5>
+            </div>
+            <div class="card-body">
+                <div id="grid-container" class="text-center">
+                    <p class="text-muted">Inicializa el entorno para ver el grid</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resultados del Entrenamiento -->
+        <div class="card mb-4" id="training-results" style="display: none;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">📈 Resultados del Entrenamiento</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <img id="progress-image" src="" alt="Progreso del entrenamiento" class="img-fluid rounded">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <img id="policy-image" src="" alt="Política aprendida" class="img-fluid rounded">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Simulación -->
+        <div class="card" id="simulation-results" style="display: none;">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">🎬 Simulación de Episodio</h5>
+            </div>
+            <div class="card-body">
+                <div id="simulation-info" class="mb-3"></div>
+                <div id="trajectory-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let trainingCompleted = false;
+
+// Función para mostrar alertas
+function showAlert(message, type = 'info') {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.getElementById('alert-container').innerHTML = alertHtml;
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) alert.remove();
+    }, 5000);
+}
+
+// Función para dibujar el grid
+function drawGrid(gridData) {
+    const container = document.getElementById('grid-container');
+    const size = gridData.length;
+    const cellSize = Math.min(60, 400 / size);
+    
+    let html = '<div style="display: inline-block;">';
+    
+    for (let i = 0; i < size; i++) {
+        html += '<div style="display: flex;">';
+        for (let j = 0; j < size; j++) {
+            const value = gridData[i][j];
+            let color = '#e3f2fd';
+            let text = '';
+            
+            if (value === 1) { // Obstáculo
+                color = '#ffcdd2';
+                text = '❌';
+            } else if (value === 2) { // Meta
+                color = '#c8e6c9';
+                text = '🎯';
+            } else if (value === 3) { // Agente
+                color = '#fff9c4';
+                text = '🤖';
+            }
+            
+            html += `<div style="
+                width: ${cellSize}px;
+                height: ${cellSize}px;
+                background: ${color};
+                border: 2px solid #333;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: ${cellSize * 0.5}px;
+            ">${text}</div>`;
+        }
+        html += '</div>';
+    }
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+
+// Inicializar entorno
+document.getElementById('btn-initialize').addEventListener('click', async () => {
+    const params = {
+        grid_size: parseInt(document.getElementById('grid_size').value),
+        learning_rate: parseFloat(document.getElementById('learning_rate').value),
+        discount_factor: parseFloat(document.getElementById('discount_factor').value),
+        epsilon: parseFloat(document.getElementById('epsilon').value)
+    };
+    
+    try {
+        const response = await fetch('/api/initialize', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(params)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(data.message, 'success');
+            drawGrid(data.grid);
+            document.getElementById('n-states').textContent = data.n_states;
+            document.getElementById('n-actions').textContent = data.n_actions;
+            document.getElementById('status-text').textContent = 'Inicializado';
+            document.getElementById('btn-train').disabled = false;
+            trainingCompleted = false;
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    } catch (error) {
+        showAlert('Error al inicializar: ' + error, 'danger');
+    }
+});
+
+// Entrenar agente
+document.getElementById('btn-train').addEventListener('click', async () => {
+    const n_episodes = parseInt(document.getElementById('n_episodes').value);
+    
+    document.getElementById('btn-train').disabled = true;
+    document.getElementById('btn-train').innerHTML = '⏳ Entrenando...';
+    showAlert('Entrenamiento en progreso... Esto puede tomar unos segundos.', 'info');
+    
+    try {
+        const response = await fetch('/api/train', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({n_episodes})
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(data.message, 'success');
+            document.getElementById('status-text').textContent = 'Entrenado';
+            document.getElementById('current-epsilon').textContent = data.final_epsilon.toFixed(3);
+            document.getElementById('avg-reward').textContent = data.avg_reward_last_100.toFixed(2);
+            
+            // Mostrar gráficos
+            document.getElementById('progress-image').src = data.progress_image + '?t=' + new Date().getTime();
+            document.getElementById('policy-image').src = data.policy_image + '?t=' + new Date().getTime();
+            document.getElementById('training-results').style.display = 'block';
+            
+            trainingCompleted = true;
+            document.getElementById('btn-test').disabled = false;
+            document.getElementById('btn-simulate').disabled = false;
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    } catch (error) {
+        showAlert('Error durante el entrenamiento: ' + error, 'danger');
+    } finally {
+        document.getElementById('btn-train').disabled = false;
+        document.getElementById('btn-train').innerHTML = '🚀 Entrenar Agente';
+    }
+});
+
+// Probar agente
+document.getElementById('btn-test').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/api/test', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`${data.message} - Pasos promedio: ${data.avg_steps.toFixed(1)}`, 'success');
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    } catch (error) {
+        showAlert('Error al probar: ' + error, 'danger');
+    }
+});
+
+// Simular episodio
+document.getElementById('btn-simulate').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/api/simulate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('simulation-info').innerHTML = `
+                <p><strong>Recompensa total:</strong> ${data.total_reward}</p>
+                <p><strong>Pasos:</strong> ${data.steps}</p>
+                <p><strong>Meta alcanzada:</strong> ${data.reached_goal ? '✅ Sí' : '❌ No'}</p>
+            `;
+            
+            // Mostrar trayectoria animada
+            let step = 0;
+            const trajectory = data.trajectory;
+            const interval = setInterval(() => {
+                if (step < trajectory.length) {
+                    const tempContainer = document.createElement('div');
+                    drawGrid(trajectory[step]);
+                    document.getElementById('trajectory-container').innerHTML = 
+                        `<h6>Paso ${step + 1}/${trajectory.length}</h6>` + 
+                        document.getElementById('grid-container').innerHTML;
+                    step++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 500);
+            
+            document.getElementById('simulation-results').style.display = 'block';
+            showAlert('Simulación completada', 'success');
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    } catch (error) {
+        showAlert('Error en la simulación: ' + error, 'danger');
+    }
+});
+
+// Reiniciar sistema
+document.getElementById('btn-reset').addEventListener('click', async () => {
+    if (confirm('¿Estás seguro de que quieres reiniciar todo?')) {
+        try {
+            const response = await fetch('/api/reset', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                location.reload();
+            }
+        } catch (error) {
+            showAlert('Error al reiniciar: ' + error, 'danger');
+        }
+    }
+});
+</script>
+{% endblock %}

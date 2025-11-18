@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Conceptos Básicos - RL{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-5">📚 Conceptos Básicos del Aprendizaje por Refuerzo</h1>
+
+<div class="mb-5">
+    <h2>1. ¿Qué es el Aprendizaje por Refuerzo?</h2>
+    <p>El <strong>Aprendizaje por Refuerzo (Reinforcement Learning, RL)</strong> es un paradigma del aprendizaje automático donde un agente aprende a tomar decisiones mediante la interacción con un entorno. A diferencia del aprendizaje supervisado, donde se entrena con datos etiquetados, o el aprendizaje no supervisado, que busca patrones en datos sin etiquetar, el RL aprende a través de un sistema de recompensas y castigos.</p>
+    
+    <div class="alert alert-info">
+        <strong>💡 Diferencias clave:</strong>
+        <ul class="mb-0">
+            <li><strong>Aprendizaje Supervisado:</strong> Aprende de ejemplos etiquetados (entrada → salida correcta)</li>
+            <li><strong>Aprendizaje No Supervisado:</strong> Encuentra patrones en datos sin etiquetar</li>
+            <li><strong>Aprendizaje por Refuerzo:</strong> Aprende mediante prueba y error, maximizando recompensas acumuladas</li>
+        </ul>
+    </div>
+</div>
+
+<div class="mb-5">
+    <h2>2. Componentes del Modelo RL</h2>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">🤖 Agente</h5>
+                    <p class="card-text">Entidad que toma decisiones y aprende. Es quien ejecuta acciones en el entorno.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">🌍 Entorno</h5>
+                    <p class="card-text">El mundo en el que el agente opera. Define las reglas y dinámicas del problema.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">📍 Estados</h5>
+                    <p class="card-text">Representación de la situación actual del agente en el entorno.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">⚡ Acciones</h5>
+                    <p class="card-text">Conjunto de movimientos o decisiones que el agente puede ejecutar.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">🎁 Recompensas</h5>
+                    <p class="card-text">Señal numérica que indica qué tan buena fue una acción en un estado dado.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">🎯 Política</h5>
+                    <p class="card-text">Estrategia que define qué acción tomar en cada estado.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-5">
+    <h2>3. Ciclo de Aprendizaje</h2>
+    <p>El proceso de aprendizaje en RL sigue un ciclo continuo:</p>
+    <ol>
+        <li><strong>Observar</strong> el estado actual del entorno</li>
+        <li><strong>Seleccionar</strong> una acción basándose en la política actual</li>
+        <li><strong>Ejecutar</strong> la acción en el entorno</li>
+        <li><strong>Recibir</strong> una recompensa y observar el nuevo estado</li>
+        <li><strong>Actualizar</strong> el conocimiento (Q-table o red neuronal)</li>
+    </ol>
+    
+    <h4 class="mt-4">⚖️ Exploración vs. Explotación</h4>
+    <p>Uno de los desafíos centrales en RL es balancear:</p>
+    <ul>
+        <li><strong>Exploración:</strong> Probar nuevas acciones para descubrir mejores estrategias</li>
+        <li><strong>Explotación:</strong> Usar el conocimiento actual para maximizar recompensas</li>
+    </ul>
+    <p>La estrategia ε-greedy es común: con probabilidad ε se explora (acción aleatoria), y con probabilidad (1-ε) se explota (mejor acción conocida).</p>
+    
+    <h4 class="mt-4">💰 Retorno Acumulado y Descuento Temporal</h4>
+    <p>El objetivo del agente es maximizar el <strong>retorno acumulado</strong>, que es la suma de todas las recompensas futuras, aplicando un <strong>factor de descuento γ</strong> (gamma) que valora más las recompensas inmediatas que las lejanas.</p>
+</div>
+
+<div class="mb-5">
+    <h2>4. Algoritmos Principales</h2>
+    
+    <h4>🔷 Q-Learning</h4>
+    <p>Algoritmo off-policy que aprende el valor óptimo de pares estado-acción. Actualiza una tabla Q usando la ecuación de Bellman:</p>
+    <div class="alert alert-secondary">
+        Q(s,a) ← Q(s,a) + α[r + γ max Q(s',a') - Q(s,a)]
+    </div>
+    <p><strong>Aplicación:</strong> Problemas con espacios de estados discretos y pequeños (navegación, juegos simples).</p>
+    
+    <h4 class="mt-4">🔶 SARSA</h4>
+    <p>Similar a Q-Learning pero on-policy: actualiza basándose en la acción realmente tomada, no en la mejor acción posible.</p>
+    <p><strong>Aplicación:</strong> Cuando se requiere una política más conservadora y segura.</p>
+    
+    <h4 class="mt-4">🔷 Deep Q-Network (DQN)</h4>
+    <p>Extensión de Q-Learning que usa redes neuronales profundas para aproximar la función Q, permitiendo trabajar con espacios de estados grandes y continuos.</p>
+    <p><strong>Aplicación:</strong> Videojuegos complejos (Atari), robótica, sistemas de control avanzados.</p>
+</div>
+
+<div class="mb-5">
+    <h2>5. Buenas Prácticas</h2>
+    <ul>
+        <li><strong>Normalización de recompensas:</strong> Mantener las recompensas en rangos manejables</li>
+        <li><strong>Tasa de aprendizaje adaptativa:</strong> Reducir α gradualmente para estabilizar el aprendizaje</li>
+        <li><strong>Exploración decreciente:</strong> Reducir ε con el tiempo (de 1.0 a 0.01)</li>
+        <li><strong>Experience Replay:</strong> Almacenar y reutilizar experiencias pasadas (DQN)</li>
+        <li><strong>Target Networks:</strong> Usar redes objetivo separadas para estabilizar el aprendizaje</li>
+        <li><strong>Convergencia:</strong> Monitorear la recompensa promedio para detectar convergencia</li>
+        <li><strong>Generalización:</strong> Probar el agente en escenarios variados para verificar robustez</li>
+    </ul>
+</div>
+
+<div class="mb-5">
+    <h2>6. Referencias Bibliográficas (APA 7)</h2>
+    <div class="alert alert-light">
+        <p><strong>Sutton, R. S., & Barto, A. G. (2018).</strong> <em>Reinforcement learning: An introduction</em> (2nd ed.). MIT Press.</p>
+        
+        <p><strong>Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J., Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K., Ostrovski, G., Petersen, S., Beattie, C., Sadik, A., Antonoglou, I., King, H., Kumaran, D., Wierstra, D., Legg, S., & Hassabis, D. (2015).</strong> Human-level control through deep reinforcement learning. <em>Nature, 518</em>(7540), 529–533. https://doi.org/10.1038/nature14236</p>
+        
+        <p><strong>Watkins, C. J. C. H., & Dayan, P. (1992).</strong> Q-learning. <em>Machine Learning, 8</em>(3), 279–292. https://doi.org/10.1007/BF00992698</p>
+    </div>
+</div>
+
+<div class="text-center mt-5">
+    <a href="/rl/practico" class="btn btn-primary btn-lg">Ir al Caso Práctico 🎮</a>
+</div>
+{% endblock %}

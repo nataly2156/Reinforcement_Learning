@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Aprendizaje por Refuerzo{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="display-4 mb-4">🤖 Aprendizaje por Refuerzo</h1>
+    <p class="lead mb-5">Explora el fascinante mundo del Reinforcement Learning</p>
+    
+    <div class="row g-4 mt-5">
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center p-5">
+                    <div class="mb-3" style="font-size: 4rem;">📚</div>
+                    <h3 class="card-title">Conceptos Básicos</h3>
+                    <p class="card-text">Aprende los fundamentos teóricos del Aprendizaje por Refuerzo, algoritmos y aplicaciones.</p>
+                    <a href="/rl/conceptos" class="btn btn-primary mt-3">Explorar Teoría</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center p-5">
+                    <div class="mb-3" style="font-size: 4rem;">🎮</div>
+                    <h3 class="card-title">Caso Práctico</h3>
+                    <p class="card-text">Entrena un agente inteligente y observa cómo aprende a resolver problemas.</p>
+                    <a href="/rl/practico" class="btn btn-primary mt-3">Entrenar Agente</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-5 p-4 bg-light rounded">
+        <h4>🎯 Objetivo del Proyecto</h4>
+        <p class="mb-0">Este proyecto demuestra cómo un agente aprende a navegar en un entorno tipo GridWorld, 
+        encontrando la ruta óptima hacia la meta mientras evita obstáculos, todo mediante el algoritmo Q-Learning.</p>
+    </div>
+</div>
+{% endblock %}
