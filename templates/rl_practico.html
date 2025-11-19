@@ -295,7 +295,6 @@ document.getElementById('btn-simulate').addEventListener('click', async () => {
             const trajectory = data.trajectory;
             const interval = setInterval(() => {
                 if (step < trajectory.length) {
-                    const tempContainer = document.createElement('div');
                     drawGrid(trajectory[step]);
                     document.getElementById('trajectory-container').innerHTML = 
                         `<h6>Paso ${step + 1}/${trajectory.length}</h6>` + 

@@ -148,3 +148,90 @@ class RLTrainer:
         axes[0, 1].set_ylabel('Número de Pasos')
         axes[0, 1].set_title('Eficiencia del Agente')
         axes[0, 1].grid(True, alpha=0.3)
+        
+        # Gráfico 3: Decaimiento de Epsilon
+        axes[1, 0].plot(self.training_history['episodes'], 
+                       self.training_history['epsilons'], 
+                       'b-')
+        axes[1, 0].set_xlabel('Episodio')
+        axes[1, 0].set_ylabel('Epsilon (ε)')
+        axes[1, 0].set_title('Tasa de Exploración')
+        axes[1, 0].grid(True, alpha=0.3)
+        
+        # Gráfico 4: Distribución de recompensas (últimos 200 episodios)
+        recent_rewards = self.training_history['rewards'][-200:]
+        axes[1, 1].hist(recent_rewards, bins=30, edgecolor='black', alpha=0.7)
+        axes[1, 1].axvline(np.mean(recent_rewards), 
+                          color='r', 
+                          linestyle='--', 
+                          linewidth=2, 
+                          label=f'Media: {np.mean(recent_rewards):.2f}')
+        axes[1, 1].set_xlabel('Recompensa Total')
+        axes[1, 1].set_ylabel('Frecuencia')
+        axes[1, 1].set_title('Distribución de Recompensas (últimos 200 ep.)')
+        axes[1, 1].legend()
+        axes[1, 1].grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        return save_path
+    
+    def visualize_policy(self, save_path='static/images/policy.png'):
+        """
+        Visualiza la política aprendida (mejor acción en cada estado)
+        """
+        grid_size = self.env.grid_size
+        policy_grid = np.zeros((grid_size, grid_size), dtype=int)
+        
+        # Obtener mejor acción para cada estado
+        for i in range(grid_size):
+            for j in range(grid_size):
+                state = i * grid_size + j
+                policy_grid[i, j] = self.agent.get_best_action(state)
+        
+        # Crear visualización
+        fig, ax = plt.subplots(figsize=(8, 8))
+        
+        # Símbolos para cada acción
+        action_symbols = {0: '↑', 1: '→', 2: '↓', 3: '←'}
+        
+        # Dibujar grid
+        for i in range(grid_size):
+            for j in range(grid_size):
+                # Color de fondo
+                if (i, j) == self.env.goal_pos:
+                    color = 'lightgreen'
+                    text = 'META'
+                elif (i, j) in self.env.obstacles:
+                    color = 'lightcoral'
+                    text = 'X'
+                else:
+                    color = 'lightblue'
+                    text = action_symbols[policy_grid[i, j]]
+                
+                # Dibujar celda
+                rect = plt.Rectangle((j, grid_size-1-i), 1, 1, 
+                                    facecolor=color, 
+                                    edgecolor='black', 
+                                    linewidth=2)
+                ax.add_patch(rect)
+                
+                # Agregar texto
+                ax.text(j + 0.5, grid_size-1-i + 0.5, text, 
+                       ha='center', va='center', 
+                       fontsize=20, fontweight='bold')
+        
+        ax.set_xlim(0, grid_size)
+        ax.set_ylim(0, grid_size)
+        ax.set_aspect('equal')
+        ax.axis('off')
+        ax.set_title('Política Aprendida\n(Mejor acción en cada estado)', 
+                    fontsize=16, fontweight='bold', pad=20)
+        
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        return save_path

@@ -1,0 +1,43 @@
+# Entorno virtual
+venv/
+env/
+.venv/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyc
+
+# Flask
+instance/
+.webassets-cache
+
+# Modelos y archivos temporales
+*.pkl
+*.h5
+static/images/*.png
+static/trained_agent.pkl
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Distribuciones
+build/
+dist/
+*.egg-info/
