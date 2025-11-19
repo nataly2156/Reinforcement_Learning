@@ -70,7 +70,7 @@ def initialize_environment():
 @app.route('/api/train', methods=['POST'])
 def train_agent():
     """Entrena al agente"""
-    global trainer, training_completed
+    global trainer, training_completed, agent
     
     if trainer is None:
         return jsonify({
@@ -83,20 +83,36 @@ def train_agent():
         data = request.get_json()
         n_episodes = data.get('n_episodes', 1000)
         
+        print("🚀 Iniciando entrenamiento...")
+        
         # Entrenar
         history = trainer.train(n_episodes=n_episodes, verbose=True)
         
+        print("📊 Generando gráfico de progreso...")
+        
         # Generar gráficos
         progress_path = trainer.plot_training_progress()
+        print(f"✅ Gráfico de progreso guardado en: {progress_path}")
+        
+        print("🗺️ Generando visualización de política...")
         policy_path = trainer.visualize_policy()
+        print(f"✅ Política guardada en: {policy_path}")
         
         # Guardar modelo
         agent.save('static/trained_agent.pkl')
+        print("💾 Modelo guardado")
         
         training_completed = True
         
         # Calcular estadísticas finales
         avg_last_100 = sum(history['rewards'][-100:]) / min(100, len(history['rewards']))
+        
+        # Verificar que los archivos existan
+        import os
+        progress_exists = os.path.exists(progress_path)
+        policy_exists = os.path.exists(policy_path)
+        
+        print(f"🔍 Verificación: progress_exists={progress_exists}, policy_exists={policy_exists}")
         
         return jsonify({
             'success': True,
@@ -104,11 +120,14 @@ def train_agent():
             'final_epsilon': agent.epsilon,
             'avg_reward_last_100': avg_last_100,
             'total_episodes': len(history['episodes']),
-            'progress_image': progress_path,
-            'policy_image': policy_path
+            'progress_image': '/' + progress_path,  # Agregar / al inicio
+            'policy_image': '/' + policy_path        # Agregar / al inicio
         })
     
     except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"❌ Error durante el entrenamiento:\n{error_detail}")
         return jsonify({
             'success': False,
             'message': f'Error durante el entrenamiento: {str(e)}'
